@@ -4,3 +4,9 @@ prfTempSensor/Debug
 prfTempSensor/Release
 prfTempSensor/prfTempSensor.componentinfo.xml
 prfConnectionBroker/localsettings.h
+prfKeypadRemote/Debug
+prfKeypadRemote/Release 328P
+prfKeypadRemote/Release
+prfKeypadRemote/rf4432cppbox.componentinfo.xml
+prfKeypadRemote/.vs
+
