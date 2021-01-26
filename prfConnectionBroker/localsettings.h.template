@@ -1,0 +1,5 @@
+
+
+#define STASSID "YOURSSID"
+#define STAPSK  "PASSWORD"
+const char* mqtt_server = "10.0.0.1";

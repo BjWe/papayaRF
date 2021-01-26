@@ -1,0 +1,6 @@
+syntax: glob
+prfTempSensor/.vs
+prfTempSensor/Debug
+prfTempSensor/Release
+prfTempSensor/prfTempSensor.componentinfo.xml
+prfConnectionBroker/localsettings.h
