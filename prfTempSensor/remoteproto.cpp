@@ -199,7 +199,9 @@ void RemoteProto::sendBasicV2Message(REMOTEPROTO_Messagetype msgtype, uint8_t re
       msg.transmission.retransmit = retry;
       
 	  rf.send(&msg, sizeof(msg));
-	  _delay_ms(25);
+	  
+	  // Warten
+	  _delay_ms(100);
     }
 	
 	incrementNextcode();	

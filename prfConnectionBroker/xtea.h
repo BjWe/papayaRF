@@ -25,20 +25,19 @@
 #ifndef XTEA_H_
 #define XTEA_H_
 
-#include <stdint.h> 
- 
+#include <stdint.h>
+
 /*
  * this fits for xtea.c and xtea-asm.S
  * 
  */
 #define XTEA_BLOCKSIZE 64
-#define XTEA_BLOCKSIZEB ((XTEA_BLOCKSIZE+7)/8)
+#define XTEA_BLOCKSIZEB ((XTEA_BLOCKSIZE + 7) / 8)
 #define XTEA_KEYSIZE 128
-#define XTEA_KEYSIZEB ((XTEA_KEYSIZE+7)/8)
+#define XTEA_KEYSIZEB ((XTEA_KEYSIZE + 7) / 8)
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /*

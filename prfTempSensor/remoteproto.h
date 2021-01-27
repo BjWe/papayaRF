@@ -41,6 +41,7 @@ typedef struct __attribute__((packed)) {
 	uint8_t  crc;
 	uint32_t  nextcode;
 	uint8_t   msgtype;
+	uint16_t  id;
 	uint32_t  data;
 } rf_packet_payload_basic_v2_t;
 
@@ -59,7 +60,8 @@ typedef struct __attribute__((packed)) {
 
 typedef struct __attribute__((packed)) {
     uint16_t  packetnum;
-    uint8_t   retransmit;
+    uint8_t flags;
+    uint8_t retransmit;
 } rf_packet_transmission_info_t;
 
 typedef struct __attribute__((packed)) {
