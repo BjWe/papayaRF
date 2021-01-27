@@ -81,7 +81,6 @@ void deep_sleep(void){
 	PCMSK0 |= (1<<PCINT0);
 	//PCMSK0 |= (1<<PCINT1);
 		
-		
 	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 	sleep_mode();
 }
@@ -188,19 +187,19 @@ int main(void)
 	
 	
     if(wakeup_rounds == 1){
+	  uart_puts("prep");
 	  SPORT(DHT_ON);
 	  SON(DHT_ON);
-	  am2302_init();
-	  
-	  for(uint8_t wait = 0; wait <= 50; wait++){
+
+	  for(uint8_t wait = 0; wait <= 80; wait++){
 	    _delay_ms(100);
 		wdr();
 	  }	
-	  
 		
 	  uint16_t temp;
 	  uint16_t humi;
 		
+	  am2302_init();
 	  uart_puts("read");
 	  uint8_t read_result = am2302_read(&humi, &temp);
 	  
@@ -218,6 +217,9 @@ int main(void)
 		rp.openRf(20);
 		rp.sendBasicV2Message(TEMPHUMI_VALUE, RETRY_TEMPHUMIMESSAGE_SEND, msg_num, msg);
 		rp.closeRf();
+	  } else {
+		uart_puts("DHT Data invalid:");
+		uart_putc(read_result);
 	  }
 
 	} else if(wakeup_rounds >= 5){

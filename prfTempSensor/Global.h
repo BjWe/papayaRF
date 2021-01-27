@@ -57,7 +57,8 @@
 #define RF1_CHIPSELECT B,2
 #define RF1_IRQ        C,0
 
-#define DHT_ON   C,2
+#define DHT_ON         C,2
+#define DHT_DATA       C,3
 
 #define ADC_SEED_PIN     C,5
 #define ADC_SEED_CHANNEL 5
