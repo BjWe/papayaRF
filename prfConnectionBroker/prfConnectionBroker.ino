@@ -13,6 +13,7 @@
 #include "localsettings.h"
 #include "remoteproto.h"
 #include "xtea.h"
+#include "packetidstore.h"
 
 const char *ssid = STASSID;
 const char *password = STAPSK;
@@ -41,6 +42,9 @@ SI4432 rf1;
 
 // Geräteregistrierung erlauben
 uint8_t allowRegister = 0;
+
+// Paketverfolgung
+PacketIdStore pidstore;
 
 enum REMOTEPROTO_Itemtype {
   ITEMTYPE_BUTTON = 0x01,
@@ -404,6 +408,13 @@ void processBasicV2Msg(uint8_t (&rx)[SI4432::MAX_PACKET_LENGTH]) {
   // Serial.println("Basic V2 Msg Received");
   rf_packet_basic_v2_t msg;
   memcpy(&msg, &rx, sizeof(rf_packet_basic_v2_t));
+
+  if(pidstore.exists(msg.header.serial, msg.transmission.packetnum)){
+    Serial.println("Drop BasicV2 retransmission");
+    return;  
+  }
+  pidstore.add(msg.header.serial, msg.transmission.packetnum);
+  
   Serial.print("BasicV2 Packet - SN: ");
   Serial.print(msg.header.serial, HEX);
 
@@ -415,8 +426,15 @@ void processBasicV2Msg(uint8_t (&rx)[SI4432::MAX_PACKET_LENGTH]) {
   remote_file_info info;
   if (cfgStore.fetch(msg.header.serial, &info)) {
     rf_packet_payload_basic_v2_t decrypted_payload;
-    
+
+    //Eine "Art" von CBC herstellen
+    // XTEA arbeitet auf 64-Bit (8 Byte) Blöcken
+    // Byte 0 - 7
     xtea_dec(&decrypted_payload, &msg.payload, &info.key);
+   
+    // Byte 8 - 15
+    xtea_dec(((uint8_t *) &decrypted_payload) + 8, (uint8_t *)(&msg.payload) + 8, &info.key);
+       
 
     Serial.print("Decrypted Basic V2 Packet ");
 
@@ -428,6 +446,18 @@ void processBasicV2Msg(uint8_t (&rx)[SI4432::MAX_PACKET_LENGTH]) {
     }
     Serial.println("");
 
+    Serial.print  ("Nextcode: ");
+    Serial.println(decrypted_payload.nextcode, HEX);
+
+    Serial.print  ("CRC:      ");
+    Serial.println(decrypted_payload.crc, HEX);
+
+    Serial.print  ("MSGType:  ");
+    Serial.println(decrypted_payload.msgtype, HEX);
+
+    Serial.print  ("ID:       ");
+    Serial.println(decrypted_payload.id, HEX);
+    
      uint8_t crc = crc8maxim(&decrypted_payload,
                             sizeof(rf_packet_payload_basic_v2_t) - 1);
     if (crc == decrypted_payload.crc) {
@@ -439,6 +469,21 @@ void processBasicV2Msg(uint8_t (&rx)[SI4432::MAX_PACKET_LENGTH]) {
 
     if (checkNextcode(info.nextcode, decrypted_payload.nextcode, 50) == 1) {
       Serial.println("Nextcode OK");
+
+      switch (decrypted_payload.msgtype) {
+        
+        case TEMPHUMI_VALUE: {
+          Serial.print("Temp / Humi: ");
+          uint16_t msg[4];
+          memcpy(&msg, decrypted_payload.data, sizeof(msg));
+          uint16_t temp = msg[1];
+          uint16_t humi = msg[0];
+
+          Serial.print(temp);
+          Serial.print(" / ");
+          Serial.println(humi);
+        }
+      }
 
       info.nextcode = decrypted_payload.nextcode;
       

@@ -87,6 +87,8 @@ void deep_sleep(void){
 
 void init(void){
 	
+	rp = RemoteProto();
+	
 	//watchdog_set_timeout(WATCHDOG_TIMEOUT_1024K);
 	watchdog_set_timeout(WATCHDOG_TIMEOUT_256K);
 	watchdog_enable();
@@ -96,13 +98,14 @@ void init(void){
 	if(wakeup_magic != WAKEUP_DEFINED_MAGIC){
 		wakeup_magic = WAKEUP_DEFINED_MAGIC;
 		wakeup_rounds = 0;
-		msg_num = 0;
+		msg_num = random_adc_seed16(ADC_SEED_CHANNEL);
 		
 		uart_puts("wdt was not set");
 	} else {
 		wakeup_rounds++;
-		//uart_puts("wdt was set");
-		uart_putc(wakeup_rounds);
+		uart_puts("round ");
+		uart_print_uint8(wakeup_rounds, 10);
+		uart_puts("\r\n");
 	}
 
 	timedjob_init();
@@ -178,7 +181,7 @@ int main(void)
 	
 	//uart_puts("boot\n");
      
-	eeprom_update_dword((uint32_t *)EEPROM_ADDR_SERIALNUM, 0x0d010101);
+	//eeprom_update_dword((uint32_t *)EEPROM_ADDR_SERIALNUM, 0x0d010101);
     
 	uint32_t serialnum = eeprom_read_dword((uint32_t *)EEPROM_ADDR_SERIALNUM);
 
@@ -187,11 +190,11 @@ int main(void)
 	
 	
     if(wakeup_rounds == 1){
-	  uart_puts("prep");
+	  //uart_puts("prep");
 	  SPORT(DHT_ON);
 	  SON(DHT_ON);
 
-	  for(uint8_t wait = 0; wait <= 80; wait++){
+	  for(uint8_t wait = 0; wait <= 100; wait++){
 	    _delay_ms(100);
 		wdr();
 	  }	
@@ -200,40 +203,49 @@ int main(void)
 	  uint16_t humi;
 		
 	  am2302_init();
-	  uart_puts("read");
+	  //uart_puts("read");
 	  uint8_t read_result = am2302_read(&humi, &temp);
 	  
 	  SPORT(DHT_ON);
 	  SOFF(DHT_ON);
 	  
 	  if(read_result == 0){
-	    uart_put_w(humi);
-	    uart_put_w(temp);
+		uart_puts("Humi: ");
+	    uart_print_uint16(humi, 10);
+		uart_puts(" - Temp: ");
+	    uart_print_uint16(temp, 10);
+		uart_puts("\r\n");
 		
-		uint32_t msg = (temp << 16) || humi;
+		//uint32_t msg = (temp << 16) || humi;
+		
+		uint16_t msg[4];
+		msg[3] = 0;
+		msg[2] = 0;
+		msg[1] = temp;
+		msg[0] = humi;
 		
 		msg_num++;
 		
 		rp.openRf(20);
-		rp.sendBasicV2Message(TEMPHUMI_VALUE, RETRY_TEMPHUMIMESSAGE_SEND, msg_num, msg);
+		rp.sendBasicV2Message(TEMPHUMI_VALUE, RETRY_TEMPHUMIMESSAGE_SEND, msg_num, 1, (uint8_t *) &msg);
 		rp.closeRf();
+		uart_puts("sent\r\n");
 	  } else {
-		uart_puts("DHT Data invalid:");
-		uart_putc(read_result);
+		uart_puts("invalid #");
+		uart_print_uint8(read_result, 10);
+		uart_puts("\r\n");
 	  }
 
-	} else if(wakeup_rounds >= 5){
-		uart_puts("reset");
+	} else if(wakeup_rounds >= 2){
 		wakeup_rounds = 0;
 	}
 	
 
 
-
 while(1){
 	_delay_ms(15);
 	uint8_t key = get_button();
-	uart_putc(key);
+	//uart_putc(key);
 	
 	if(key != 0xFF){
 		_delay_ms(50);
@@ -251,10 +263,13 @@ while(1){
 			
 		} else {
 			
-			uint32_t msg;
-			memset(&msg, key, sizeof(msg));
+			uint8_t msg[8];
+			memset(&msg, 0, sizeof(msg));
+			
+			msg[0] = key; 
+			
 			rp.openRf(20);
-			rp.sendBasicV2Message(BUTTON_DOWN, RETRY_BUTTONMESSAGE_SEND, msg_num, msg);
+			rp.sendBasicV2Message(BUTTON_DOWN, RETRY_BUTTONMESSAGE_SEND, msg_num, key, (uint8_t *) &msg);
 			
 			while(get_button() == key2){
 				wdr();
@@ -262,7 +277,7 @@ while(1){
 				_delay_ms(100);
 			}
 			
-			rp.sendBasicV2Message(BUTTON_UP, RETRY_BUTTONMESSAGE_SEND, msg_num, msg);
+			rp.sendBasicV2Message(BUTTON_UP, RETRY_BUTTONMESSAGE_SEND, msg_num, key, (uint8_t *) &msg);
 			rp.closeRf();
 		}
 	}

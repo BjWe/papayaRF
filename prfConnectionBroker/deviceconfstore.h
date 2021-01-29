@@ -5,9 +5,11 @@
 #include "Arduino.h"
 #include "LittleFS.h"
 
+#define DEVICE_KEY_SIZE  16
+
 typedef struct __attribute__((packed)) {
   uint32_t serial;
-  uint8_t key[16];
+  uint8_t key[DEVICE_KEY_SIZE];
   uint32_t nextcode;
   char name[32];
   uint8_t io[32][2];

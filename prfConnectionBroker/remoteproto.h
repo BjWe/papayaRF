@@ -34,11 +34,11 @@ typedef struct __attribute__((packed)) {
 } rf_packet_payload_basic_t;
 
 typedef struct __attribute__((packed)) {
-  uint8_t crc;
-  uint32_t nextcode;
-  uint8_t msgtype;
-  uint16_t id;
-  uint32_t data;
+  uint8_t   crc;
+  uint32_t  nextcode;
+  uint8_t   msgtype;
+  uint16_t  id;
+  uint8_t   data[8];
 } rf_packet_payload_basic_v2_t;
 
 typedef struct __attribute__((packed)) {
