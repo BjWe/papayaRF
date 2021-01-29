@@ -14,6 +14,9 @@ class HomeassistantMqtt {
   void init(const char* _device_id, const char* _mqtt_server);
   void sendConfigStatus(uint32_t serialno);
   void sendIOConfigStatus(uint32_t serialno, uint8_t ionum);
+
+  void sendBatteryConfig(uint32_t serialno);
+  void sendBatteryStatus(uint32_t serialno, uint8_t batterypercent);
   
   void sendTemperatureConfigStatus(uint32_t serialno, uint8_t ionum);
   void sendTemperatureOnline(uint32_t serialno, String online, uint8_t ionum);
