@@ -38,11 +38,11 @@ typedef struct __attribute__((packed)) {
 } rf_packet_payload_basic_t;
 
 typedef struct __attribute__((packed)) {
-	uint8_t  crc;
+	uint8_t   crc;
 	uint32_t  nextcode;
 	uint8_t   msgtype;
 	uint16_t  id;
-	uint32_t  data;
+	uint8_t   data[8];
 } rf_packet_payload_basic_v2_t;
 
 typedef struct __attribute__((packed)) {
@@ -104,7 +104,7 @@ class RemoteProto {
 	void incrementNextcode(void);
 	
 	rf_packet_basic_t generateBasicMessage(REMOTEPROTO_Messagetype msgtype, uint16_t data);
-    rf_packet_basic_v2_t generateBasicV2Message(REMOTEPROTO_Messagetype msgtype, uint32_t data);
+    rf_packet_basic_v2_t generateBasicV2Message(REMOTEPROTO_Messagetype msgtype, uint16_t id, uint8_t *data);
 	rf_packet_rekey_t generateRekeyMessage(uint8_t key[16], uint32_t nextcode);
 	void generateCRCForBasicPayload(rf_packet_payload_basic_t *payload);
 	void generateCRCForBasicV2Payload(rf_packet_payload_basic_v2_t *payload);
@@ -112,7 +112,7 @@ class RemoteProto {
 	void encryptPayload(rf_packet_payload_basic_t *payload);
 	void encryptPayloadV2(rf_packet_payload_basic_v2_t *payload);
 	void sendBasicMessage(REMOTEPROTO_Messagetype msgtype, uint16_t data);
-    void sendBasicV2Message(REMOTEPROTO_Messagetype msgtype, uint8_t retries, uint16_t msg_num, uint32_t data);
+    void sendBasicV2Message(REMOTEPROTO_Messagetype msgtype, uint8_t retries, uint16_t msg_num, uint16_t id, uint8_t *data);
 	void sendRekeyMessage(uint8_t key[16], uint32_t nextcode);
 	
 	private:

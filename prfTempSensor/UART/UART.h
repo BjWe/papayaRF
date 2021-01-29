@@ -2,6 +2,7 @@
 #define UART_H
 
 #include <avr/io.h>
+#include <stdlib.h>
 #include "../Global.h"
 
 #define UBRR_VAL (F_CPU/(UART_BAUD*16)-1)   
@@ -93,6 +94,25 @@ static inline int uart_getc_nowait (void)
 
 
 #endif
+
+
+static inline void uart_print_uint8(uint8_t i, uint8_t radix){
+  char out[4];
+  itoa(i, out, radix);
+  uart_puts(out);
+}
+
+static inline void uart_print_uint16(uint16_t i, uint8_t radix){
+	char out[6];
+	itoa(i, out, radix);
+	uart_puts(out);
+}
+
+static inline void uart_print_uint32(uint32_t i, uint8_t radix){
+	char out[14];
+	itoa(i, out, radix);
+	uart_puts(out);
+}
 
 
 static inline void uart_put_w(const uint16_t w){

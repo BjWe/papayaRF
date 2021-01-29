@@ -65,6 +65,15 @@ uint8_t random_adc_seed8(uint8_t channel){
 	return seed;
 }
 
+uint16_t random_adc_seed16(uint8_t channel){
+	uint16_t seed = 0;
+	for(uint8_t i = 0; i < 16; i++){
+		uint8_t measure = ADC_read(channel);
+		seed = (seed << 1) | (measure & 1);
+	}
+	return seed;
+}
+
 uint32_t random_adc_seed32(uint8_t channel){
 	uint32_t seed = 0;
 	for(uint8_t i = 0; i < 32; i++){
