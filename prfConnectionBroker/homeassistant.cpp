@@ -64,49 +64,40 @@ void HomeassistantMqtt::sendConfigStatus(uint32_t serialno) {
 
   String topic = "homeassistant/sensor/prf_" + serial_str + "_status/config";
 
-  const size_t bufferSize = JSON_OBJECT_SIZE(18) + JSON_ARRAY_SIZE(2);
-  DynamicJsonBuffer jsonBuffer(bufferSize);
-  JsonObject& root = jsonBuffer.createObject();
-  JsonObject& device = jsonBuffer.createObject();
-  JsonArray& identifiers = jsonBuffer.createArray();
-  JsonArray& connections = jsonBuffer.createArray();
-  JsonArray& connection = jsonBuffer.createArray();
+  DynamicJsonDocument doc(2048);
+  
+  JsonObject device = doc.createNestedObject("device");
+  JsonArray identifiers = device.createNestedArray("identifiers");
+  JsonArray connections = device.createNestedArray("connections");
+  JsonArray connection = connections.createNestedArray();
 
   identifiers.add("prf_" + serial_str);
 
-  //connection.add("mac");
-  //connection.add(WiFi.macAddress());
   connection.add("serial");
   connection.add(serial_str);
-  connections.add(connection);
 
-  device["identifiers"] = identifiers;
-  device["connections"] = connections;
   device["name"] = "prf_" + serial_str;
   device["model"] = "PapayaRF";
-  device["sw_version"] = "0.2(papayarf)";
+  device["sw_version"] = "0.3(papayarf)";
   device["manufacturer"] = "Papayawhip";
 
-  root["name"] = "PRF " + serial_str + " status";
-  root["stat_t"] = "~HASS_STATE";
-  root["avty_t"] = "~LWT";
-  root["frc_upd"] = "true";
-  root["pl_avail"] = "Online";
-  root["pl_not_avail"] = "Offline";
-  root["json_attributes_topic"] = "~HASS_STATE";
-  root["unit_of_meas"] = " ";
-  //root["val_tpl"] = "{{value_json['RSSI']}}";
-  root["ic"] = "mdi:information-outline";
-  root["uniq_id"] = "prf_" + serial_str + "_status";
-  root["device"] = device;
-  root["~"] = "prf_" + serial_str + "/tele/";
+  doc["name"] = "PRF " + serial_str + " status";
+  doc["stat_t"] = "~HASS_STATE";
+  doc["avty_t"] = "~LWT";
+  doc["frc_upd"] = "true";
+  doc["pl_avail"] = "Online";
+  doc["pl_not_avail"] = "Offline";
+  doc["json_attributes_topic"] = "~HASS_STATE";
+  doc["unit_of_meas"] = " ";
+  doc["ic"] = "mdi:information-outline";
+  doc["uniq_id"] = "prf_" + serial_str + "_status";
+  doc["~"] = "prf_" + serial_str + "/tele/";
 
   Serial.println(topic);
 
   char message[800];
-  root.printTo(message, sizeof(message));
-  Serial.println("vor publish");
-  Serial.println(mqtt.state());
+  serializeJson(doc, message);
+
   Serial.println(message);
   mqtt.publish(topic.c_str(), message, true);
   Serial.println("nach publish");
@@ -129,42 +120,33 @@ void HomeassistantMqtt::sendIOConfigStatus(uint32_t serialno, uint8_t ionum) {
 
   String topic = "homeassistant/binary_sensor/prf_" + serial_str + "_io" + ioid + "/config";
 
-  const size_t bufferSize = JSON_OBJECT_SIZE(18) + JSON_ARRAY_SIZE(2);
-  DynamicJsonBuffer jsonBuffer(bufferSize);
-  JsonObject& root = jsonBuffer.createObject();
-
-  JsonObject& device = jsonBuffer.createObject();
-  JsonArray& identifiers = jsonBuffer.createArray();
-  JsonArray& connections = jsonBuffer.createArray();
-  JsonArray& connection = jsonBuffer.createArray();
+  DynamicJsonDocument doc(2048);
+  
+  JsonObject device = doc.createNestedObject();
+  JsonArray identifiers = doc.createNestedArray("identifiers");
+  JsonArray connections = doc.createNestedArray("connections");
+  JsonArray connection = connections.createNestedArray();
 
   identifiers.add("prf_" + serial_str);
 
-  //connection.add("mac");
-  //connection.add(WiFi.macAddress());
   connection.add("serial");
   connection.add(serial_str);
-  connections.add(connection);
 
-  device["identifiers"] = identifiers;
-  device["connections"] = connections;
-
-  root["name"] = "PRF " + serial_str + " IO_" + ioid;
-  root["stat_t"] = "~stat";
-  root["avty_t"] = "~avail";
-  root["pl_avail"] = "Online";
-  root["pl_not_avail"] = "Offline";
-  root["uniq_id"] = "prf_" + serial_str + "_io" + ioid + "_status";
-  root["device"] = device;
-  root["~"] = "prf_" + serial_str + "_io" + ioid + "/";
-  //root["value_template"] = "{{value_json.STATE}}";*/
-  root["pl_on"] = "ON";
-  root["off_delay"] = 120;
+  doc["name"] = "PRF " + serial_str + " IO_" + ioid;
+  doc["stat_t"] = "~stat";
+  doc["avty_t"] = "~avail";
+  doc["pl_avail"] = "Online";
+  doc["pl_not_avail"] = "Offline";
+  doc["uniq_id"] = "prf_" + serial_str + "_io" + ioid + "_status";
+  doc["device"] = device;
+  doc["~"] = "prf_" + serial_str + "_io" + ioid + "/";
+  doc["pl_on"] = "ON";
+  doc["off_delay"] = 120;
 
   Serial.println(topic);
 
   char message[800];
-  root.printTo(message, sizeof(message));
+  serializeJson(doc, message);
   mqtt.publish(topic.c_str(), message, true);
 }
 
