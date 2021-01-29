@@ -471,6 +471,12 @@ void processBasicV2Msg(uint8_t (&rx)[SI4432::MAX_PACKET_LENGTH]) {
       Serial.println("Nextcode OK");
 
       switch (decrypted_payload.msgtype) {
+
+        case BATTERY_LEVEL: {
+          mqtt.sendBatteryConfig(info.serial);
+          mqtt.sendBatteryStatus(info.serial, decrypted_payload.data[0]);
+          break;
+        }
         
         case TEMPHUMI_VALUE: {
           Serial.print("Temp / Humi: ");

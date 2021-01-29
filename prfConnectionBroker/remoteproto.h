@@ -23,7 +23,8 @@ enum REMOTEPROTO_Messagetype {
   BUTTON_DOWN = 0x03,
   ROTARY_LEFT = 0x11,
   ROTARY_RIGHT = 0x12,
-  TEMPHUMI_VALUE = 0x21
+  TEMPHUMI_VALUE = 0x21,
+  BATTERY_LEVEL      = 0x31
 };
 
 typedef struct __attribute__((packed)) {

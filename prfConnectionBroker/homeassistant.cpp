@@ -149,6 +149,52 @@ void HomeassistantMqtt::sendIOConfigStatus(uint32_t serialno, uint8_t ionum) {
   mqtt.publish(topic.c_str(), message, true);
 }
 
+void HomeassistantMqtt::sendBatteryConfig(uint32_t serialno) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String topic = "homeassistant/sensor/prf_" + serial_str + "_battery/config";
+
+  DynamicJsonDocument doc(2048);
+  
+  JsonObject device = doc.createNestedObject("device");
+  JsonArray identifiers = device.createNestedArray("identifiers");
+  JsonArray connections = device.createNestedArray("connections");
+  JsonArray connection = connections.createNestedArray();
+
+
+  identifiers.add("prf_" + serial_str);
+
+  connection.add("serial");
+  connection.add(serial_str);
+
+  doc["name"] = "PRF " + serial_str + " Battery";
+  doc["device_class"] = "battery";
+  doc["unit_of_measurement"] = "%";
+  doc["stat_t"] = "~stat";
+  doc["uniq_id"] = "prf_" + serial_str + "_battery";
+  doc["~"] = "prf_" + serial_str + "_battery/";
+  doc["expire_after"] = 600;
+
+  Serial.println(topic);
+
+  char message[800];
+  serializeJson(doc, message);
+
+  Serial.println(message);
+  mqtt.publish(topic.c_str(), message, true);
+  Serial.println("nach publish");
+}
+
+void HomeassistantMqtt::sendBatteryStatus(uint32_t serialno, uint8_t batterypercent) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String topic = "prf_" + serial_str + "_battery/stat";
+  Serial.println(topic);
+  mqtt.publish(topic.c_str(), String(batterypercent).c_str(), true);
+}
+
 void HomeassistantMqtt::sendTemperatureConfigStatus(uint32_t serialno, uint8_t ionum) {
   String serial_str = String(serialno, HEX);
   serial_str.toUpperCase();
@@ -239,7 +285,7 @@ void HomeassistantMqtt::sendHumidityConfigStatus(uint32_t serialno, uint8_t ionu
   connection.add("serial");
   connection.add(serial_str);
 
-  doc["name"] = "PRF " + serial_str + " Feuchtigkeit_" + ioid;
+  doc["name"] = "PRF " + serial_str + " Humidity_" + ioid;
   doc["device_class"] = "humidity";
   doc["unit_of_measurement"] = "%";
   doc["stat_t"] = "~stat";

@@ -114,6 +114,12 @@ static inline void uart_print_uint32(uint32_t i, uint8_t radix){
 	uart_puts(out);
 }
 
+static inline void uart_print_float(float f, uint8_t precision){
+	char out[14];
+	dtostrf(f, 10, precision, out);
+	uart_puts(out);
+}
+
 
 static inline void uart_put_w(const uint16_t w){
 	uart_putc((uint8_t)(w>>8));

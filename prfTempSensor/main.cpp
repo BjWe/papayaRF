@@ -89,8 +89,8 @@ void init(void){
 	
 	rp = RemoteProto();
 	
-	//watchdog_set_timeout(WATCHDOG_TIMEOUT_1024K);
-	watchdog_set_timeout(WATCHDOG_TIMEOUT_256K);
+	watchdog_set_timeout(WATCHDOG_TIMEOUT_1024K);
+	//watchdog_set_timeout(WATCHDOG_TIMEOUT_256K);
 	watchdog_enable();
 	
 	uart_init();
@@ -181,7 +181,7 @@ int main(void)
 	
 	//uart_puts("boot\n");
      
-	//eeprom_update_dword((uint32_t *)EEPROM_ADDR_SERIALNUM, 0x0d010101);
+	eeprom_update_dword((uint32_t *)EEPROM_ADDR_SERIALNUM, 0x0d010101);
     
 	uint32_t serialnum = eeprom_read_dword((uint32_t *)EEPROM_ADDR_SERIALNUM);
 
@@ -236,7 +236,35 @@ int main(void)
 		uart_puts("\r\n");
 	  }
 
-	} else if(wakeup_rounds >= 2){
+	} else if(wakeup_rounds == 2) {
+		uint16_t voltage_raw = ADC_read(ADC_MUX_CH_VBG);	
+		float voltage_uc = 1126.4; // 0x400 / 1.1
+		voltage_uc = voltage_uc / voltage_raw;
+		float battery_percent = ((voltage_uc - BATTERY_LEVEL_PERCENT_0) / (BATTERY_LEVEL_PERCENT_100 - BATTERY_LEVEL_PERCENT_0)) * 100;
+		if(battery_percent > 100){
+		  battery_percent = 100;
+		}
+		
+		uart_puts("V Raw: ");
+		uart_print_uint16(voltage_raw, 10);
+		uart_puts(" V - Calc: ");
+		uart_print_float(voltage_uc, 2);
+		uart_puts(" V - Level: ");
+		uart_print_float(battery_percent, 2);
+		uart_puts(" % \r\n");
+		
+		
+		uint8_t msg[8];
+		msg[0] = battery_percent;
+		
+		msg_num++;
+		rp.openRf(20);
+		rp.sendBasicV2Message(BATTERY_LEVEL, 5, msg_num, 0, (uint8_t *) &msg);
+		rp.closeRf();
+		
+		
+	} else if(wakeup_rounds >= 8){
+		
 		wakeup_rounds = 0;
 	}
 	
@@ -268,6 +296,7 @@ while(1){
 			
 			msg[0] = key; 
 			
+			msg_num++;
 			rp.openRf(20);
 			rp.sendBasicV2Message(BUTTON_DOWN, RETRY_BUTTONMESSAGE_SEND, msg_num, key, (uint8_t *) &msg);
 			
@@ -277,6 +306,7 @@ while(1){
 				_delay_ms(100);
 			}
 			
+			msg_num++;
 			rp.sendBasicV2Message(BUTTON_UP, RETRY_BUTTONMESSAGE_SEND, msg_num, key, (uint8_t *) &msg);
 			rp.closeRf();
 		}
