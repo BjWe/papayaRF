@@ -122,9 +122,9 @@ void HomeassistantMqtt::sendIOConfigStatus(uint32_t serialno, uint8_t ionum) {
 
   DynamicJsonDocument doc(2048);
   
-  JsonObject device = doc.createNestedObject();
-  JsonArray identifiers = doc.createNestedArray("identifiers");
-  JsonArray connections = doc.createNestedArray("connections");
+  JsonObject device = doc.createNestedObject("device");
+  JsonArray identifiers = device.createNestedArray("identifiers");
+  JsonArray connections = device.createNestedArray("connections");
   JsonArray connection = connections.createNestedArray();
 
   identifiers.add("prf_" + serial_str);
@@ -138,7 +138,6 @@ void HomeassistantMqtt::sendIOConfigStatus(uint32_t serialno, uint8_t ionum) {
   doc["pl_avail"] = "Online";
   doc["pl_not_avail"] = "Offline";
   doc["uniq_id"] = "prf_" + serial_str + "_io" + ioid + "_status";
-  doc["device"] = device;
   doc["~"] = "prf_" + serial_str + "_io" + ioid + "/";
   doc["pl_on"] = "ON";
   doc["off_delay"] = 120;
@@ -148,6 +147,144 @@ void HomeassistantMqtt::sendIOConfigStatus(uint32_t serialno, uint8_t ionum) {
   char message[800];
   serializeJson(doc, message);
   mqtt.publish(topic.c_str(), message, true);
+}
+
+void HomeassistantMqtt::sendTemperatureConfigStatus(uint32_t serialno, uint8_t ionum) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String ioid = String(ionum, HEX);
+  ioid.toUpperCase();
+
+  String topic = "homeassistant/sensor/prf_" + serial_str + "_temperature" + ioid + "/config";
+
+  DynamicJsonDocument doc(2048);
+  
+  JsonObject device = doc.createNestedObject("device");
+  JsonArray identifiers = device.createNestedArray("identifiers");
+  JsonArray connections = device.createNestedArray("connections");
+  JsonArray connection = connections.createNestedArray();
+
+  identifiers.add("prf_" + serial_str);
+
+  connection.add("serial");
+  connection.add(serial_str);
+
+  doc["name"] = "PRF " + serial_str + " Temperature_" + ioid;
+  doc["device_class"] = "temperature";
+  doc["unit_of_measurement"] = "°C";
+  doc["stat_t"] = "~stat";
+  doc["avty_t"] = "~avail";
+  doc["pl_avail"] = "Online";
+  doc["pl_not_avail"] = "Offline";
+  doc["uniq_id"] = "prf_" + serial_str + "_temperature" + ioid + "_status";
+  doc["~"] = "prf_" + serial_str + "_temperature_io" + ioid + "/";
+  doc["expire_after"] = 120;
+
+  Serial.println(topic);
+
+  char message[800];
+  serializeJson(doc, message);
+  Serial.println(message);
+  mqtt.publish(topic.c_str(), message, true);
+}
+
+void HomeassistantMqtt::sendTemperatureOnline(uint32_t serialno, String online, uint8_t ionum) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String ioid = String(ionum, HEX);
+  ioid.toUpperCase();
+
+  String topic = "prf_" + serial_str + "_temperature_io" + ioid + "/avail";
+  mqtt.publish(topic.c_str(), online.c_str(), true);
+}
+
+void HomeassistantMqtt::sendTemperatureStatus(uint32_t serialno, uint16_t temp, uint8_t ionum) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String ioid = String(ionum, HEX);
+  ioid.toUpperCase();
+
+  float f_value = temp;
+  f_value = f_value/10;
+  char c_value[10];
+  dtostrf(f_value, 7, 1, c_value);
+
+  String topic = "prf_" + serial_str + "_temperature_io" + ioid + "/stat";
+  Serial.println(topic);
+  Serial.println(c_value);
+  mqtt.publish(topic.c_str(), c_value, true);
+}
+
+void HomeassistantMqtt::sendHumidityConfigStatus(uint32_t serialno, uint8_t ionum) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String ioid = String(ionum, HEX);
+  ioid.toUpperCase();
+
+  String topic = "homeassistant/sensor/prf_" + serial_str + "_humidity" + ioid + "/config";
+
+  DynamicJsonDocument doc(2048);
+  
+  JsonObject device = doc.createNestedObject("device");
+  JsonArray identifiers = device.createNestedArray("identifiers");
+  JsonArray connections = device.createNestedArray("connections");
+  JsonArray connection = connections.createNestedArray();
+
+  identifiers.add("prf_" + serial_str);
+
+  connection.add("serial");
+  connection.add(serial_str);
+
+  doc["name"] = "PRF " + serial_str + " Feuchtigkeit_" + ioid;
+  doc["device_class"] = "humidity";
+  doc["unit_of_measurement"] = "%";
+  doc["stat_t"] = "~stat";
+  doc["avty_t"] = "~avail";
+  doc["pl_avail"] = "Online";
+  doc["pl_not_avail"] = "Offline";
+  doc["uniq_id"] = "prf_" + serial_str + "_humidity" + ioid + "_status";
+  doc["~"] = "prf_" + serial_str + "_humidity_io" + ioid + "/";
+  doc["expire_after"] = 120;
+
+  Serial.println(topic);
+
+  char message[800];
+  serializeJson(doc, message);
+  Serial.println(message);
+  mqtt.publish(topic.c_str(), message, true);
+}
+
+void HomeassistantMqtt::sendHumidityOnline(uint32_t serialno, String online, uint8_t ionum) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String ioid = String(ionum, HEX);
+  ioid.toUpperCase();
+
+  String topic = "prf_" + serial_str + "_humidity_io" + ioid + "/avail";
+  mqtt.publish(topic.c_str(), online.c_str(), true);
+}
+
+void HomeassistantMqtt::sendHumidityStatus(uint32_t serialno, uint16_t humidity, uint8_t ionum) {
+  String serial_str = String(serialno, HEX);
+  serial_str.toUpperCase();
+
+  String ioid = String(ionum, HEX);
+  ioid.toUpperCase();
+
+  float f_value = humidity;
+  f_value = f_value/10;
+  char c_value[10];
+  dtostrf(f_value, 7, 1, c_value);
+
+  String topic = "prf_" + serial_str + "_humidity_io" + ioid + "/stat";
+  Serial.println(topic);
+  Serial.println(c_value);
+  mqtt.publish(topic.c_str(), c_value, true);
 }
 
 void HomeassistantMqtt::sendIOOnline(uint32_t serialno, String online, uint8_t ionum) {
@@ -160,6 +297,7 @@ void HomeassistantMqtt::sendIOOnline(uint32_t serialno, String online, uint8_t i
   String topic = "prf_" + serial_str + "_io" + ioid + "/avail";
   mqtt.publish(topic.c_str(), online.c_str(), true);
 }
+
 
 void HomeassistantMqtt::sendIOStatus(uint32_t serialno, String status, uint8_t ionum) {
   String serial_str = String(serialno, HEX);

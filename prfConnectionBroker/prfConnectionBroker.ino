@@ -482,6 +482,16 @@ void processBasicV2Msg(uint8_t (&rx)[SI4432::MAX_PACKET_LENGTH]) {
           Serial.print(temp);
           Serial.print(" / ");
           Serial.println(humi);
+
+          mqtt.sendTemperatureConfigStatus(info.serial, 1);
+          mqtt.sendTemperatureOnline(info.serial, "Online", 1);
+          mqtt.sendTemperatureStatus(info.serial, temp, 1);
+
+          mqtt.sendHumidityConfigStatus(info.serial, 1);
+          mqtt.sendHumidityOnline(info.serial, "Online", 1);
+          mqtt.sendHumidityStatus(info.serial, humi, 1);
+          
+          break;
         }
       }
 
